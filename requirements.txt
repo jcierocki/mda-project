@@ -35,12 +35,15 @@ commonmark==0.9.1
 connexion==2.13.0
 croniter==1.3.4
 cryptography==36.0.2
+debugpy==1.6.0
+decorator==5.1.1
 defusedxml==0.7.1
 Deprecated==1.2.13
 dill==0.3.1.1
 dnspython==2.2.1
 docutils==0.16
 email-validator==1.1.3
+entrypoints==0.4
 Flask==1.1.2
 Flask-AppBuilder==3.4.5
 Flask-Babel==2.0.0
@@ -61,6 +64,7 @@ humanize==4.0.0
 idna==3.3
 importlib-metadata==4.11.3
 inflection==0.5.1
+ipykernel==6.13.0
 ipython==7.23.1
 ipython-genutils==0.2.0
 iso8601==1.0.2
@@ -69,6 +73,8 @@ jedi==0.18.0
 Jinja2==3.0.3
 joblib==1.1.0
 jsonschema==3.2.0
+jupyter-client==7.3.0
+jupyter-core==4.10.0
 kombu==5.2.4
 lazy-object-proxy==1.4.3
 lockfile==0.12.2
@@ -80,6 +86,7 @@ marshmallow-enum==1.5.1
 marshmallow-oneofschema==3.0.1
 marshmallow-sqlalchemy==0.26.1
 matplotlib-inline==0.1.2
+nest-asyncio==1.5.5
 numpy==1.22.3
 optuna==2.10.0
 packaging==21.3
@@ -88,12 +95,14 @@ parso==0.8.2
 patsy==0.5.2
 pbr==5.8.1
 pendulum==2.1.2
+pexpect==4.8.0
 pickleshare==0.7.5
 prettytable==3.2.0
 prison==0.2.1
 prometheus-client==0.13.1
 prompt-toolkit==3.0.28
 psutil==5.9.0
+ptyprocess==0.7.0
 pycparser==2.21
 Pygments==2.11.2
 PyJWT==1.7.1
@@ -109,6 +118,7 @@ python3-openid==3.2.0
 pytz==2021.3
 pytzdata==2020.1
 PyYAML==5.4.1
+pyzmq==22.3.0
 requests==2.27.1
 rfc3986==1.5.0
 rich==12.0.1
@@ -130,6 +140,7 @@ text-unidecode==1.3
 threadpoolctl==3.1.0
 tornado==6.1
 tqdm==4.64.0
+traitlets==5.1.1
 typing_extensions==4.1.1
 unicodecsv==0.14.1
 urllib3==1.26.9
