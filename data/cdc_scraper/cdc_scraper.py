@@ -2,6 +2,7 @@ import pandas as pd
 from sodapy import Socrata
 from tqdm import tqdm
 
+client = Socrata("data.cdc.gov", None)
 cdc_dict = {
     'mask_mandates' : {
         'table_name' : '42jj-z7fa',
@@ -131,4 +132,4 @@ for file in tqdm(cdc_dict):
                      select =f"{cdc_dict[file]['query']}",
                      limit = 3000000)
     results_df = pd.DataFrame.from_records(results)
-    results_df.to_csv(f"data/cdc_{file}.csv",index=False)
+    results_df.to_csv(f"cdc_{file}.csv",index=False)
