@@ -1,0 +1,7 @@
+data on COVID variants by US state, obtained from GISAID through the following R code:
+
+library(rjson)
+clusterdata = fromJSON(file="http://github.com/hodcroftlab/covariants/raw/master/cluster_tables/USAClusters_data.json")
+for(state in names(clusterdata$countries)){
+  assign(paste("data",gsub(" ","",state),sep="_"),as.data.frame(clusterdata$countries[state]))
+}
