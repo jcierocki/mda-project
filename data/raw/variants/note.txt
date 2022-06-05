@@ -5,3 +5,20 @@ clusterdata = fromJSON(file="http://github.com/hodcroftlab/covariants/raw/master
 for(state in names(clusterdata$countries)){
   assign(paste("data",gsub(" ","",state),sep="_"),as.data.frame(clusterdata$countries[state]))
 }
+
+
+consolidated data through:
+
+library(rjson)
+clusterdata <- fromJSON(file="http://github.com/hodcroftlab/covariants/raw/master/cluster_tables/USAClusters_data.json")
+states <- names(clusterdata$countries)
+variantdata<-data.frame(Week = character(0),State = character(0),Variant = character(0),CaseCount = integer(0))
+for(state in states){
+  eval(parse(text=paste("week<-clusterdata$countries$`",state,"`$week",sep="")))
+  eval(parse(text=paste("variantnames<-names(clusterdata$countries$`",state,"`)[-c(1,2)]",sep="")))
+  for(vname in variantnames){
+    eval(parse(text=paste("vstats<-clusterdata$countries$`",state,"`$`",vname,"`",sep="")))
+    tempdata<-data.frame(Week=week,State=rep(state,length(week)),Variant=rep(vname,length(week)),CaseCount=vstats)
+    variantdata<-rbind(variantdata,tempdata)
+  }
+}
