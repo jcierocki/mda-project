@@ -3,6 +3,7 @@ from sodapy import Socrata
 from tqdm import tqdm
 
 client = Socrata("data.cdc.gov", None)
+
 cdc_dict = {
     'mask_mandates' : {
         'table_name' : '42jj-z7fa',
