@@ -62,4 +62,4 @@ print(result.summary())
 
 df = pd.concat([result.params, result.pvalues], axis=1)
 df.columns = ["coef", "pval"]
-df.to_csv("../../data/results.csv")
+df.to_csv("../../data/mixed_reg_coef.csv")

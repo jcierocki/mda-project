@@ -89,3 +89,11 @@ df_vaccinations = df_vaccinations.loc[:, ["date", "state_name", "fully_vaccinate
 df_vaccinations
 db["vaccinations"].insert_many(df_vaccinations.to_dict("records"))
 
+df_exp_smoothing_best_params = pd.read_csv("../data/best_exp_smoothing_params.csv")
+df_exp_smoothing_best_params
+db["df_exp_smoothing_best_params"].insert_many(df_exp_smoothing_best_params.to_dict("records"))
+
+df_coefs = pd.read_csv("../data/mixed_reg_coef.csv").round(4).rename(columns={"Unnamed: 0": "paramerter"})
+df_coefs.head()
+db["mixed_random_effects_coefs"].insert_many(df_coefs.to_dict("records"))
+

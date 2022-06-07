@@ -68,6 +68,8 @@ params_grid["MAPE"] = metrics
 df_best_params = params_grid.sort_values("MAPE", ascending=True).head(3)
 df_best_params
 
+df_best_params.to_csv("../../data/best_exp_smoothing_params.csv", index=False)
+
 best_params = df_best_params.drop(columns=["MAPE"]).head(1).to_dict("records")[0]
 best_params
 
