@@ -1,6 +1,10 @@
 import pandas as pd
 from sodapy import Socrata
 from tqdm import tqdm
+import os 
+
+path = os.getcwd()
+
 
 client = Socrata("data.cdc.gov", None)
 
@@ -78,24 +82,29 @@ cdc_dict = {
             , limited_open_general_indoor
         '''
     },
-    'community_transmission' : {
-        'table_name' : 'nra9-vzzn',
-        'query' : '''
-             state_name as state_code
-            , county_name
-            , fips_code::text
-            , substring(fips_code::text,1,2) as state_fips
-            , substring(fips_code::text,3,5) as county_fips
-            , date
-            , cases_per_100k_7_day_count
-            , percent_test_results_reported
-            , community_transmission_level
-        '''
-    },
+    # 'community_transmission' : {
+    #     'table_name' : 'nra9-vzzn',
+    #     'query' : '''
+    #          state_name as state_code
+    #         , county_name
+    #         , fips_code::text
+    #         , substring(fips_code::text,1,2) as state_fips
+    #         , substring(fips_code::text,3,5) as county_fips
+    #         , date
+    #         , cases_per_100k_7_day_count
+    #         , percent_test_results_reported
+    #         , community_transmission_level
+    #     '''
+    #},
     'vaccinations' : {
         'table_name' : '8xkx-amqh',
         'query' : '''
-             *
+             date,
+             fips::text as fips_code,
+             Recip_State as state_code,
+             series_complete_pop_pct as pct_fully_vaccinated,
+             Series_Complete_Yes as fully_vaccinated,
+             census2019 as total_pop
         '''
     },
     'vaccine_hesitancy' : {
@@ -120,10 +129,7 @@ cdc_dict = {
         , percent_non_hispanic_black
         , percent_non_hispanic_native
         , percent_non_hispanic_white
-        , geographical_point
         , state_code
-        , county_boundary
-        , state_boundary
         '''
     }
 }
@@ -133,4 +139,6 @@ for file in tqdm(cdc_dict):
                      select =f"{cdc_dict[file]['query']}",
                      limit = 3000000)
     results_df = pd.DataFrame.from_records(results)
-    results_df.to_csv(f"cdc_{file}.csv",index=False)
+    if results_df.columns.str.contains('date').any():
+        results_df['date'] = pd.to_datetime(results_df['date'])
+    results_df.to_parquet(os.path.join(path,f"cdc_{file}.parquet"),index=False)
