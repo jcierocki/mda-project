@@ -22,63 +22,85 @@ dag = DAG(
 
 build_env = BashOperator(
     task_id = 'build_environment',
-    bash_command="pwd",
+    bash_command="01_environment_setup.sh",
+    dag=dag,
+    cwd=dag.folder
+)
+
+activate_env = BashOperator(
+    task_id = 'activate_environment',
+    bash_command="mda_project_activate",
     dag=dag,
     cwd=dag.folder
 )
 
 pull_cdc = BashOperator(
     task_id = 'pull_cdc_data',
-    bash_command="python scripts/cdc_script.py",
+    bash_command="python scripts/02A_cdc_script.py",
     dag=dag,
     cwd=dag.folder,
 )
 
 pull_nyt = BashOperator(
     task_id = 'pull_nyt_data',
-    bash_command='python scripts/nyt_script.py',
+    bash_command='python scripts/02B_nyt_script.py',
     dag=dag,
     cwd=dag.folder
 )
 
-clean_data = BashOperator(
-    task_id = 'process_all_data',
-    bash_command='python scripts/clean_data.py',
+pull_variants = BashOperator(
+    task_id = 'pull_variants',
+    bash_command='python scripts/02C_covid_variants.py',
     dag=dag,
     cwd=dag.folder
 )
 
-upload_data= BashOperator(
-    task_id = 'upload_data',
-    bash_command='python scripts/load_data.py',
+
+clean_cdc = BashOperator(
+    task_id = 'process_cdc',
+    bash_command='python scripts/03A_process_cdc.py',
     dag=dag,
     cwd=dag.folder
 )
 
-run_ts_model= BashOperator(
-    task_id = 'run_ts_model',
-    bash_command='python scripts/ts_model.py',
+clean_non_epidemic = BashOperator(
+    task_id = 'process_non_epidemic',
+    bash_command='python scripts/03B_process_non_epidemic.py',
     dag=dag,
     cwd=dag.folder
 )
 
-run_tristan_model= BashOperator(
-    task_id = 'run_tristan_model',
-    bash_command='python scripts/renf_model.py',
+data_complete= BashOperator(
+    task_id = 'data_complete',
+    bash_command='echo Data Collection and Processing Complete',
     dag=dag,
     cwd=dag.folder
 )
 
-run_achilles_model= BashOperator(
-    task_id = 'run_achilles_model',
-    bash_command='python scripts/counterfactuals_model.py',
+run_time_series_model = BashOperator(
+    task_id = 'run_time_series_model',
+    bash_command='python scripts/04A_time_series_model.py',
+    dag=dag,
+    cwd=dag.folder
+)
+
+run_random_effects_model= BashOperator(
+    task_id = 'run_random_effects_model',
+    bash_command='python scripts/04B_random_effects_model.py',
+    dag=dag,
+    cwd=dag.folder
+)
+
+run_counterfactuals_model= BashOperator(
+    task_id = 'run_counterfactuals_model',
+    bash_command='python scripts/04C_counterfactuals_model.py',
     dag=dag,
     cwd=dag.folder
 )
 
 upload_model_results= BashOperator(
-    task_id = 'upload_model_results',
-    bash_command='echo goodbye',
+    task_id = 'upload_data_to_mongodb',
+    bash_command='python scripts/05_upload_to_mongo.py',
     dag=dag,
     cwd=dag.folder
 )
@@ -90,16 +112,20 @@ build_app= BashOperator(
     cwd=dag.folder
 )
 
-
-build_env >> pull_cdc
-build_env >> pull_nyt 
-pull_nyt >> clean_data
-pull_cdc >> clean_data
-clean_data >> upload_data
-upload_data >> run_ts_model
-upload_data >> run_tristan_model
-upload_data >> run_achilles_model
-run_ts_model >> upload_model_results
-run_tristan_model >> upload_model_results
-run_achilles_model >> upload_model_results
+build_env >> activate_env
+activate_env >> pull_cdc
+activate_env >> pull_nyt 
+activate_env >> pull_variants
+activate_env >> clean_non_epidemic
+pull_nyt >> clean_cdc
+pull_cdc >> clean_cdc
+clean_non_epidemic >> clean_cdc
+clean_cdc >> data_complete
+pull_variants >> data_complete
+data_complete >> run_time_series_model
+data_complete >> run_random_effects_model
+data_complete >> run_counterfactuals_model
+run_time_series_model >> upload_model_results
+run_random_effects_model >> upload_model_results
+run_counterfactuals_model >> upload_model_results
 upload_model_results >> build_app
