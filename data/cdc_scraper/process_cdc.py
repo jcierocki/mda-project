@@ -22,8 +22,8 @@ def create_counterfactual_frame():
     vaccinations['date'] = pd.to_datetime(vaccinations['date']).dt.strftime('%Y-%m-%d')
     vaccinations['fips_code_text'] = vaccinations['fips_code'].astype(int)
     vaccine_hesitancy = pd.read_parquet('cdc_vaccine_hesitancy.parquet')
-    # CHANGE THIS GUY WHEN MERGING TO MASTER
-    cases = pd.read_csv('../county_daily.csv')
+    cases = pd.read_parquet('../cases_daily.parquet')
+    cases['fips'] = cases['fips'].astype(int)
     non_epidemic = pd.read_csv('../non_epidemic_data.csv')
     masks['fips_code_text'] = masks['fips_code_text'].astype(int)
     vaccine_hesitancy['fips_code_text'] = vaccine_hesitancy['fips_code_text'].astype(int)
@@ -53,7 +53,7 @@ def create_counterfactual_frame():
     for col in convert_cols:
         modeling_df[f'{col}'] = modeling_df[f'{col}'].astype(float)
     
-    modeling_df.to_parquet('modeling_df.parquet')
+    modeling_df.to_parquet('counterfactual_modeling_df.parquet')
 
     
 get_state_vaccination_rates()
