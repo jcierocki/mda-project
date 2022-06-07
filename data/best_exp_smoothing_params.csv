@@ -1,0 +1,6 @@
+trend,damped_trend,seasonal,initialization_method,use_boxcox,MAPE
+add,True,add,estimated,True,0.3469657026685887
+add,True,add,heuristic,True,0.3469657026685887
+add,False,mul,estimated,False,0.3615121188309959
+add,False,mul,heuristic,False,0.3615121188309959
+add,True,mul,estimated,False,0.3691681909009569
