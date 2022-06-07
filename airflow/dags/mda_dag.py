@@ -107,7 +107,7 @@ upload_model_results= BashOperator(
 
 build_app= BashOperator(
     task_id = 'build_app',
-    bash_command='echo goodbye',
+    bash_command='python scripts/06_build_app.py',
     dag=dag,
     cwd=dag.folder
 )
