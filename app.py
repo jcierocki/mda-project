@@ -7,9 +7,7 @@ import plotly.graph_objects as go
 import plotly.figure_factory as ff
 import pandas as pd
 from pymongo import MongoClient
-import requests
 from datetime import datetime, date
-# import dash_bootstrap_components as dbc
 
 from dash.exceptions import PreventUpdate
 from dash.dependencies import Output, Input
@@ -20,11 +18,13 @@ db = MongoClient()["MDAProjectDatabase"]
 
 app = dash.Dash(
     __name__,
-    # external_stylesheets=external_stylesheets,
+    # external_stylesheets='https://codepen.io/chriddyp/pen/bWLwgP.css',
     url_base_pathname="/"
 )
 
-with app.server.app_context():
+server = app.server
+
+with server.app_context():
     fips_dict_df = pd.DataFrame.from_records(db["fips_codes"].find({}, {"_id": 0}))
     fips_dict_df.loc[fips_dict_df.state_name.notna(), "full_area_name"] = [area + ", " + state_name for (area, state_name) in zip(fips_dict_df.area, fips_dict_df.state_name) if pd.isna(state_name) is not True]
     fips_dict_df.loc[fips_dict_df.state_name.isna(), "full_area_name"] = fips_dict_df.area
