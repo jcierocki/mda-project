@@ -58,6 +58,7 @@ def get_county_daily_infections_nyt(urls):
     df = df.reset_index(drop=True)
     return df
 
-county_daily_df = get_county_daily_infections_nyt(county_daily_urls)
-county_daily_df.to_parquet('../../data/cases_daily.parquet')
+# county_daily_df = get_county_daily_infections_nyt(county_daily_urls)
+# county_daily_df.to_parquet('../../data/cases_daily.parquet')
+print('This step works')
 
