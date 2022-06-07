@@ -6,23 +6,55 @@ from sklearn.metrics import mean_squared_error
 from tqdm import tqdm
 from joblib import Parallel, delayed
 
-def objective(space):
-    clf=xgboost.XGBRegressor(
-                    n_estimators =space['n_estimators'], max_depth = int(space['max_depth']), gamma = space['gamma'],
-                    reg_alpha = int(space['reg_alpha']),min_child_weight=int(space['min_child_weight']),
-                    colsample_bytree=int(space['colsample_bytree']))
-    
-    #evaluation = [( X_train, y_train), ( X_test, y_test)]
-    
-    clf.fit(X, y,
-            #eval_set=evaluation,
-            verbose=False)
-    
 
-    pred = clf.predict(X)
-    accuracy = mean_squared_error(y,pred)
-    print ("SCORE:", accuracy)
-    return {'loss': accuracy, 'status': STATUS_OK }
+def tune_model(df,masks,params,n_sample=1000):
+    sample_df = df[df['face_masks_required_in_public_Public mask mandate']==masks].sample(n_sample)
+    X = sample_df[modeling_vars]
+    y = sample_df['moving_cases_per_100k']
+    
+    def objective(space):
+        clf=xgboost.XGBRegressor(
+                        n_estimators =space['n_estimators'], max_depth = int(space['max_depth']), gamma = space['gamma'],
+                        reg_alpha = int(space['reg_alpha']),min_child_weight=int(space['min_child_weight']),
+                        colsample_bytree=int(space['colsample_bytree']))
+
+        #evaluation = [( X_train, y_train), ( X_test, y_test)]
+
+        clf.fit(X, y,
+                #eval_set=evaluation,
+                verbose=False)
+
+
+        pred = clf.predict(X)
+        accuracy = mean_squared_error(y,pred)
+        print ("SCORE:", accuracy)
+        return {'loss': accuracy, 'status': STATUS_OK }
+    
+    trials = Trials()
+    best_hyperparams = fmin(fn = objective,
+                            space = space,
+                            algo = tpe.suggest,
+                            max_evals = 20,
+                            trials = trials)
+    
+    print(best_hyperparams)
+    
+    colsample_bytree = best_hyperparams['colsample_bytree']
+    gamma = best_hyperparams['gamma']
+    max_depth = int(best_hyperparams['max_depth'])
+    min_child_weight = int(best_hyperparams['min_child_weight'])
+    reg_alpha = best_hyperparams['reg_alpha']
+    reg_lambda = best_hyperparams['reg_lambda']
+    
+    model = xgboost.XGBRegressor(
+        colsample_bytree= colsample_bytree,
+        gamma=gamma,
+        max_depth= max_depth,
+        min_child_weight= min_child_weight,
+        reg_alpha= reg_alpha,
+        reg_lambda= reg_lambda
+    ).fit(X, y)
+    return model
 
 def run_forward_mask(df,model):
     df['change_points']= np.where(df['face_masks_required_in_public_No public mask mandate']!=df['face_masks_required_in_public_No public mask mandate'].shift(1).bfill(),1,0)
@@ -32,7 +64,6 @@ def run_forward_mask(df,model):
     all_dfs = []
     for i, date in enumerate(dates):
         xx = df[df['date']==date].copy()
-        xx.loc[:,'face_masks_required_in_public_Public mask mandate'] = 1
         if i ==0:
 
             preds.append(model.predict(xx[modeling_vars])[0])
@@ -71,7 +102,6 @@ def run_forward_no_mask(df,model):
     all_dfs = []
     for i, date in enumerate(dates):
         xx = df[df['date']==date].copy()
-        xx.loc[:,'face_masks_required_in_public_Public mask mandate'] = 0
         if i ==0:
 
             preds.append(model.predict(xx[modeling_vars])[0])
@@ -105,11 +135,10 @@ def run_forward_no_mask(df,model):
 def run_for_fips(df,fips_code_text):
     try:
         df = df[df['fips_code_text']==fips_code_text].copy()
-        mask_preds = run_forward_mask(df,model)
-        no_mask_preds = run_forward_no_mask(df,model)
+        mask_preds = run_forward_mask(df,model1)
+        no_mask_preds = run_forward_no_mask(df,model2)
         melted_df = mask_preds.merge(no_mask_preds).melt(id_vars='date')
         melted_df['fips_code_text'] = fips_code_text
-        melted_df['state_code'] = df['state_code'].unique()[0]
         return melted_df
     except:
         pass
@@ -163,52 +192,15 @@ modeling_vars = ['unemployment_rate_2020',
 ]
 
 modeling_df_sample = modeling_df.sample(500000)
-X = modeling_df_sample[modeling_vars]
-y = modeling_df_sample['moving_cases_per_100k']
-
-space={'max_depth': hp.quniform("max_depth", 3, 18, 1),
-        'gamma': hp.uniform ('gamma', 1,9),
-        'reg_alpha' : hp.quniform('reg_alpha', 0,180,1),
-        'reg_lambda' : hp.uniform('reg_lambda', 0,1),
-        'colsample_bytree' : hp.uniform('colsample_bytree', 0.5,1),
-        'min_child_weight' : hp.quniform('min_child_weight', 0, 10, 1),
-        'n_estimators': 180,
-        'seed': 0
-    }
-
-trials = Trials()
-
-best_hyperparams = fmin(fn = objective,
-                        space = space,
-                        algo = tpe.suggest,
-                        max_evals = 50,
-                        trials = trials)
-print("The best hyperparameters are : ","\n")
-print(best_hyperparams)
-
-colsample_bytree = best_hyperparams['colsample_bytree']
-gamma = best_hyperparams['gamma']
-max_depth = int(best_hyperparams['max_depth'])
-min_child_weight = int(best_hyperparams['min_child_weight'])
-reg_alpha = best_hyperparams['reg_alpha']
-reg_lambda = best_hyperparams['reg_lambda']
-
-model = xgboost.XGBRegressor(
-    colsample_bytree= colsample_bytree,
-    gamma=gamma,
-    max_depth= max_depth,
-    min_child_weight= min_child_weight,
-    reg_alpha= reg_alpha,
-    reg_lambda= reg_lambda
-)
-model.fit(X, y)
 
 
+model1 = tune_model(modeling_df,masks=1,params=space,n_sample=500000)
+model2 = tune_model(modeling_df,masks=0,params=space,n_sample=500000)
 all_runs_list = Parallel(n_jobs=6)(delayed(run_for_fips)(modeling_df,i) for i in tqdm(modeling_df['fips_code_text'].unique()))
-all_runs = pd.concat(all_runs_list)
+all_runs = pd.concat(all_runs_list).merge(modeling_df[['fips_code_text','state_code']].drop_duplicates())
 state_counterfactuals = all_runs.groupby(['date','variable','state_code']).agg({'value':'sum'}).reset_index()
 state_actuals = modeling_df.groupby(['date','state_code']).agg({'moving_cases_per_100k':'sum'}).reset_index()
 state_actuals.columns = ['date','state_code','value']
 state_actuals['variable'] = 'actual'
 final_results = pd.concat([state_counterfactuals,state_actuals[['date','variable','state_code','value']]])
-final_results.to_csv('../../data/counterfactual_results_model_1.csv',index=False)
+final_results.to_csv('../../data/counterfactual_results_model_2.csv',index=False)
