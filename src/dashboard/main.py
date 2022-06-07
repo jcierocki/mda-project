@@ -16,6 +16,7 @@ from dash.dependencies import Output, Input
 from datetime import datetime, timedelta
 
 db = MongoClient()["MDAProjectDatabase"]
+# db = MongoClient("mongodb+srv://admin:<password>@mdaprojectdatabase.qpntw.mongodb.net/?retryWrites=true&w=majority")["MDAProjectDatabase"]
 
 app = dash.Dash(
     __name__,
@@ -304,14 +305,6 @@ def update_line_chart_vaccinations(state_name):
         autorange=False
     )
     fig_selected_state_vaccine['layout']['xaxis1'].update(title='Date')
-    # ''' # Hidden second subplot
-    #     # Second subplot
-    #     fig_selected_state_vaccine.add_trace(go.Scatter(x=vaccinations_state_df.loc[vaccinations_state_df['state_code'] == state][column_date],
-    #                                                     y=vaccinations_state_df.loc[vaccinations_state_df['state_code'] == state][column_pct_vaccinated],
-    #                                                     mode='lines',
-    #                                                     name=column_pct_vaccinated),
-    #                                          row=2, col=1)
-    #     fig_selected_state_vaccine['layout']['yaxis2'].update(title='Per cent') '''
 
     fig_selected_state_vaccine.update_layout(title_text=state_name, showlegend=False, width=1500)
     fig_selected_state_vaccine.update_xaxes(rangeslider_visible=True, rangeslider_thickness=0.075)
