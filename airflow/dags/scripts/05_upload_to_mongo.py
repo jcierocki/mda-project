@@ -58,3 +58,34 @@ df_counterfactual2.head()
 
 db["counterfactual_model_results"].insert_many(df_counterfactual2.to_dict("records"))
 
+
+df_abrev_state = pd.read_csv("../../data/state_abrev_dict.csv")
+df_abrev_state.fips_state = df_abrev_state.fips_state.astype(str).str.zfill(2)
+
+df_vaccinations = pd.read_csv(
+    "../../data/vaccinations_by_state.csv", 
+    dtype={"fully_vaccinated": int, "total_pop": int}
+) \
+    .rename(columns={"state_code": "abrev_state"})\
+    .drop(columns=["pct_vaccinated"])
+
+df_vaccinations = pd.merge(
+    df_vaccinations,
+    df_abrev_state,
+    on="abrev_state",
+    how="left"
+).drop(columns=["abrev_state"])
+
+df_vaccinations = pd.merge(
+    df_vaccinations,
+    pd.read_csv("../../data/fips_states.csv", dtype={"fips_state": str}),
+    on="fips_state",
+    how="left"
+).drop(columns=["fips_state"])
+
+df_vaccinations.state_name = df_vaccinations.state_name.str.title()
+df_vaccinations = df_vaccinations.loc[:, ["date", "state_name", "fully_vaccinated", "total_pop"]]
+
+df_vaccinations
+db["vaccinations"].insert_many(df_vaccinations.to_dict("records"))
+
