@@ -25,7 +25,8 @@ app = dash.Dash(
 
 with app.server.app_context():
     fips_dict_df = pd.DataFrame.from_records(db["fips_codes"].find({}, {"_id": 0}))
-    fips_dict_df["full_area_name"] = fips_dict_df[["area", "state_name"]].apply(tuple, axis=1).str.join(', ')
+    fips_dict_df.loc[fips_dict_df.state_name.notna(), "full_area_name"] = [area + ", " + state_name for (area, state_name) in zip(fips_dict_df.area, fips_dict_df.state_name) if pd.isna(state_name) is not True]
+    fips_dict_df.loc[fips_dict_df.state_name.isna(), "full_area_name"] = fips_dict_df.area
     fips_dict_df = fips_dict_df.set_index("full_area_name")
 
     date_max = datetime.strptime(
