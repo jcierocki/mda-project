@@ -117,7 +117,7 @@ def run_for_fips(df,fips_code_text):
 
 
 
-modeling_df = pd.read_parquet('../data/cdc_scraper/modeling_df.parquet')
+modeling_df = pd.read_parquet('../data/cdc_scraper/counterfactual_modeling_df.parquet')
 modeling_vars = ['unemployment_rate_2020',
         'median_household_income_2019',
         'poverty_frac_2019',
