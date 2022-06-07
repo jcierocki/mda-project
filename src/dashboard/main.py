@@ -1,6 +1,6 @@
 from typing import Literal
 import dash
-from dash import dcc, html
+from dash import dcc, html, dash_table
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -49,7 +49,7 @@ with app.server.app_context():
 
     states_vaccinations = db["vaccinations"].distinct("state_name")
 
-    ## static plots below
+    ## static plots and tables below
 
     data_fcst = pd.DataFrame(db["country_level_cases_with_forecasts"].find({}, {"_id": 0}))
     fig_fcst = px.line(
@@ -61,10 +61,17 @@ with app.server.app_context():
 
     fig_fcst.update_xaxes(rangeslider_visible=True)
 
+    mixed_reg_coefs_df = pd.DataFrame(db["mixed_random_effects_coefs"].find({}, {"_id": 0}))
+    n = mixed_reg_coefs_df.shape[0]
+    n_half = round(n / 2)
+
+    mixed_reg_coefs_df1 = mixed_reg_coefs_df.loc[:n_half, :]
+    mixed_reg_coefs_df2 = mixed_reg_coefs_df.loc[n_half:, :]
+
 
 app.layout = html.Div([
     html.Div([
-        html.H1("COVID dynamic through time"),
+        html.H1("COVID-19 dynamics through time"),
         dcc.Graph(id="cases-deaths-lineplot"),
         html.Div(children=[
             dcc.Dropdown(
@@ -82,7 +89,7 @@ app.layout = html.Div([
     ], style={'display': 'block', 'width': "1500px", "margin": "0 auto"}),
     html.Br(),
     html.Div([
-        html.H1("Infections and deaths by geografical location"),
+        html.H1("Infections and deaths by geographical location"),
         html.Div(children=[
             html.Div([
                 dcc.Graph(id="map-cases"),
@@ -112,8 +119,8 @@ app.layout = html.Div([
         dcc.Graph(id="ts-fcst", figure=fig_fcst)
     ], style={'display': 'block', 'width': "1500px", "margin": "0 auto"}),
     html.Div(children=[
-        html.H1("Counterfactual model"),
-        html.P("Some description..."),
+        html.H1("Counterfactual analysis of mask manadate influence"),
+        html.P("In order to evaluate influence of establishing mask mandate we applied quasi-experimental technical called counterfactual analysis which involved training machine learning model (in this case XGBoost) on two parts off data then comparing model predictions."),
         dcc.Graph(id="counterfactual-model-results-lineplot"),
         dcc.Dropdown(
             states_counterfactual_model,
@@ -131,7 +138,21 @@ app.layout = html.Div([
             id="vaccinations-states",
             style={'display': 'inline-block', 'width': "500px"}
         )
-    ], style={"display": "block", "width": "1500px", "margin": "0 auto"})
+    ], style={"display": "block", "width": "1500px", "margin": "0 auto"}),
+    html.Div([
+        html.H1("Linear mixed, random effects model"),
+        html.P("We estimate this statisical model using Restricted Maximum Likelihood in order to evaluate causal relations between COVID-19 dynamics and other, external factors. We obtained many significant regressors"),
+        html.Div([
+            html.Div([dash_table.DataTable(
+                mixed_reg_coefs_df1.to_dict('records'),
+                [{"name": i, "id": i} for i in mixed_reg_coefs_df1.columns]
+            )], style={'display': 'inline-block', 'width': "700px", "margin-right": "50px"}),
+            html.Div([dash_table.DataTable(
+                mixed_reg_coefs_df2.to_dict('records'),
+                [{"name": i, "id": i} for i in mixed_reg_coefs_df2.columns]
+            )], style={'display': 'inline-block', 'width': "700px"}),
+        ], style={'display': 'block', 'width': "1500px"})
+    ], style={'display': 'block', 'width': "1500px", "margin": "0 auto"})
 ], style={"display": "block"})
 
 @app.callback(
