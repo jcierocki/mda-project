@@ -22,7 +22,7 @@ dag = DAG(
 
 build_env = BashOperator(
     task_id = 'build_environment',
-    bash_command="scripts/test_bash.sh",
+    bash_command="pwd",
     dag=dag,
     cwd=dag.folder
 )
