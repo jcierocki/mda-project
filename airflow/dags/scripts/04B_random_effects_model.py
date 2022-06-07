@@ -4,7 +4,7 @@ from linearmodels import PanelOLS
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
-modeling_df_final = pd.read_parquet('../../random_effects_modeling_df.parquet')
+modeling_df_final = pd.read_parquet('../../data/cdc_scraper/random_effects_modeling_df.parquet')
 modeling_df_final.columns = modeling_df_final.columns.str.replace(' ', '_')
 modeling_df_final.columns = modeling_df_final.columns.str.replace('/', '_')
 modeling_df_final.columns = modeling_df_final.columns.str.replace('-', '_')
