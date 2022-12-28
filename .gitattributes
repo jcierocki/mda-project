@@ -1,3 +1,4 @@
 *.csv linguist-vendored
 *.eps linguist-generated
 *.tex linguist-generated
+*.ipynb linguist-documentation
