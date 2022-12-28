@@ -1,4 +1,4 @@
-### works only on Unix-family operations systems
+### works only on Unix-family operating systems
 
 ### install development packages required to build Python
 
